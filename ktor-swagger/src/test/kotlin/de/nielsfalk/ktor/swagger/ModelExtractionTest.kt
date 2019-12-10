@@ -3,14 +3,14 @@ package de.nielsfalk.ktor.swagger
 import com.winterbe.expekt.should
 import de.nielsfalk.ktor.swagger.version.shared.Property
 import de.nielsfalk.ktor.swagger.version.v2.Parameter
+import de.nielsfalk.ktor.swagger.version.v3.Parameter as ParameterV3
 import io.ktor.client.call.TypeInfo
 import io.ktor.client.call.typeInfo
-import org.junit.Test
 import java.time.Instant
 import java.time.LocalDate
 import kotlin.reflect.full.memberProperties
 import kotlin.test.assertEquals
-import de.nielsfalk.ktor.swagger.version.v3.Parameter as ParameterV3
+import org.junit.Test
 
 class ModelExtractionTest {
     companion object {

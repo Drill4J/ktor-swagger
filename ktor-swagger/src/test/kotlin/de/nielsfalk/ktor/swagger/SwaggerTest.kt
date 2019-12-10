@@ -6,8 +6,13 @@ import com.winterbe.expekt.should
 import de.nielsfalk.ktor.swagger.version.shared.Group
 import de.nielsfalk.ktor.swagger.version.shared.ParameterInputType
 import de.nielsfalk.ktor.swagger.version.shared.Property
+import de.nielsfalk.ktor.swagger.version.v2.Operation as OperationV2
+import de.nielsfalk.ktor.swagger.version.v2.Parameter as ParameterV2
+import de.nielsfalk.ktor.swagger.version.v2.Response as ResponseV2
 import de.nielsfalk.ktor.swagger.version.v2.Swagger
 import de.nielsfalk.ktor.swagger.version.v3.OpenApi
+import de.nielsfalk.ktor.swagger.version.v3.Operation as OperationV3
+import de.nielsfalk.ktor.swagger.version.v3.Response as ResponseV3
 import io.ktor.application.install
 import io.ktor.http.ContentType
 import io.ktor.locations.Location
@@ -16,11 +21,6 @@ import io.ktor.routing.routing
 import io.ktor.server.testing.withTestApplication
 import org.junit.Before
 import org.junit.Test
-import de.nielsfalk.ktor.swagger.version.v2.Parameter as ParameterV2
-import de.nielsfalk.ktor.swagger.version.v2.Response as ResponseV2
-import de.nielsfalk.ktor.swagger.version.v2.Operation as OperationV2
-import de.nielsfalk.ktor.swagger.version.v3.Operation as OperationV3
-import de.nielsfalk.ktor.swagger.version.v3.Response as ResponseV3
 
 data class ToyModel(val id: Int?, val name: String) {
     companion object {

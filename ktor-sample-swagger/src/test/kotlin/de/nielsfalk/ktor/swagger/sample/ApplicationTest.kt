@@ -1,7 +1,7 @@
 package de.nielsfalk.ktor.swagger.sample
 
-import org.junit.Test
 import java.util.concurrent.TimeUnit
+import org.junit.Test
 
 class ApplicationTest {
 
