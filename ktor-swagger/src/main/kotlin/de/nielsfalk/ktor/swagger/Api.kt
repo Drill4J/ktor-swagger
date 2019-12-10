@@ -19,23 +19,23 @@ import io.ktor.locations.delete
 import io.ktor.locations.get
 import io.ktor.locations.post
 import io.ktor.locations.put
-import io.ktor.pipeline.ContextDsl
-import io.ktor.pipeline.PipelineContext
 import io.ktor.request.receive
 import io.ktor.routing.Route
 import io.ktor.routing.application
+import io.ktor.util.pipeline.ContextDsl
+import io.ktor.util.pipeline.PipelineContext
 import kotlin.reflect.KClass
 
 data class Metadata(
-    internal val bodySchema: BodySchema? = null,
-    internal val bodyExamples: Map<String, Example> = emptyMap(),
-    internal val responses: List<HttpCodeResponse> = emptyList(),
-    internal val summary: String? = null,
-    internal val description: String? = null,
-    @PublishedApi
-    internal val headers: List<KClass<*>> = emptyList(),
-    @PublishedApi
-    internal val parameters: List<KClass<*>> = emptyList()
+        internal val bodySchema: BodySchema? = null,
+        internal val bodyExamples: Map<String, Example> = emptyMap(),
+        internal val responses: List<HttpCodeResponse> = emptyList(),
+        internal val summary: String? = null,
+        internal val description: String? = null,
+        @PublishedApi
+        internal val headers: List<KClass<*>> = emptyList(),
+        @PublishedApi
+        internal val parameters: List<KClass<*>> = emptyList()
 ) {
     inline fun <reified T> header(): Metadata = copy(headers = headers + T::class)
 
@@ -43,44 +43,44 @@ data class Metadata(
 }
 
 data class HttpCodeResponse(
-    internal val statusCode: HttpStatusCode,
-    internal val responseTypes: List<ResponseType>,
-    internal val description: String? = null
+        internal val statusCode: HttpStatusCode,
+        internal val responseTypes: List<ResponseType>,
+        internal val description: String? = null
 )
 
 @PublishedApi
 internal fun singleResponse(
-    statusCode: HttpStatusCode,
-    responseType: ResponseType,
-    description: String? = null
+        statusCode: HttpStatusCode,
+        responseType: ResponseType,
+        description: String? = null
 ) = HttpCodeResponse(
-    statusCode,
-    listOf(responseType),
-    description
+        statusCode,
+        listOf(responseType),
+        description
 )
 
 fun Metadata.responds(vararg responses: HttpCodeResponse): Metadata =
-    copy(responses = (this.responses + responses))
+        copy(responses = (this.responses + responses))
 
 fun Metadata.examples(vararg pairs: Pair<String, Example>): Metadata =
-    copy(bodyExamples = (bodyExamples + mapOf(*pairs)))
+        copy(bodyExamples = (bodyExamples + mapOf(*pairs)))
 
 fun Metadata.description(description: String): Metadata =
-    copy(description = description)
+        copy(description = description)
 
 fun Metadata.noReflectionBody(name: ModelName): Metadata =
-    copy(bodySchema = BodySchema(name))
+        copy(bodySchema = BodySchema(name))
 
 /**
  * Defines the schema reference name for the body of the message of the incoming JSON object.
  */
 data class BodySchema
 internal constructor(
-    internal val name: ModelName?
+        internal val name: ModelName?
 )
 
 fun String.description(description: String): Metadata =
-    Metadata(description = description, summary = this)
+        Metadata(description = description, summary = this)
 
 /**
  * Define a custom schema for the body of the HTTP request.
@@ -88,10 +88,10 @@ fun String.description(description: String): Metadata =
  * @receiver The summary to use for the operation.
  */
 fun String.noReflectionBody(name: ModelName?): Metadata =
-    Metadata(bodySchema = BodySchema(name), summary = this)
+        Metadata(bodySchema = BodySchema(name), summary = this)
 
 fun noReflectionBody(name: ModelName?): Metadata =
-    Metadata(bodySchema = BodySchema(name))
+        Metadata(bodySchema = BodySchema(name))
 
 /**
  * Define a custom schema for the body of the HTTP request.
@@ -100,32 +100,32 @@ fun noReflectionBody(name: ModelName?): Metadata =
  */
 @JvmName("noReflectionBodyReceiverIsSummary")
 fun String.noReflectionBody() =
-    noReflectionBody(null)
+        noReflectionBody(null)
 
 fun noReflectionBody(): Metadata =
-    noReflectionBody(null)
+        noReflectionBody(null)
 
 fun String.examples(vararg pairs: Pair<String, Example>): Metadata =
-    Metadata(summary = this).examples(*pairs)
+        Metadata(summary = this).examples(*pairs)
 
 fun example(
-    id: String,
-    value: Any? = null,
-    summary: String? = null,
-    description: String? = null,
-    externalValue: String? = null,
-    `$ref`: String? = null
+        id: String,
+        value: Any? = null,
+        summary: String? = null,
+        description: String? = null,
+        externalValue: String? = null,
+        `$ref`: String? = null
 ): Pair<String, Example> =
-    id to Example(summary, description, value, externalValue, `$ref`)
+        id to Example(summary, description, value, externalValue, `$ref`)
 
 /**
  * @receiver The summary to use for the operation.
  */
 fun String.responds(vararg responses: HttpCodeResponse): Metadata =
-    Metadata(responses = listOf(*responses), summary = this)
+        Metadata(responses = listOf(*responses), summary = this)
 
 fun responds(vararg responses: HttpCodeResponse) =
-    Metadata(responses = listOf(*responses))
+        Metadata(responses = listOf(*responses))
 
 sealed class ResponseType() {
     abstract val examples: Map<String, Example>
@@ -133,30 +133,30 @@ sealed class ResponseType() {
 
 data class JsonResponseFromReflection
 internal constructor(
-    val type: TypeInfo,
-    override val examples: Map<String, Example>
+        val type: TypeInfo,
+        override val examples: Map<String, Example>
 ) : ResponseType() {
     companion object {
 
         @PublishedApi
         internal fun create(type: TypeInfo, examples: Map<String, Example>) =
-            JsonResponseFromReflection(
-                type, examples
-            )
+                JsonResponseFromReflection(
+                        type, examples
+                )
     }
 }
 
 inline fun <reified T> json(vararg examples: Pair<String, Example> = arrayOf()): ResponseType =
-    JsonResponseFromReflection.create(typeInfo<T>(), mapOf(*examples))
+        JsonResponseFromReflection.create(typeInfo<T>(), mapOf(*examples))
 
 data class JsonResponseSchema
 internal constructor(
-    val name: ModelName,
-    override val examples: Map<String, Example>
+        val name: ModelName,
+        override val examples: Map<String, Example>
 ) : ResponseType()
 
 fun json(name: ModelName, vararg examples: Pair<String, Example>): ResponseType =
-    JsonResponseSchema(name, mapOf(*examples))
+        JsonResponseSchema(name, mapOf(*examples))
 
 data class CustomContentTypeResponse(val contentType: ContentType) : ResponseType() {
     override val examples: Map<String, Example> = emptyMap()
@@ -174,84 +174,91 @@ data class BodyFromReflection(val typeInfo: TypeInfo, override val examples: Map
 data class BodyFromSchema(val name: ModelName, override val examples: Map<String, Example>) : BodyType()
 
 inline fun <reified T> ok(vararg examples: Pair<String, Example> = arrayOf()): HttpCodeResponse =
-    ok(json<T>(*examples))
+        ok(json<T>(*examples))
 
 fun ok(name: String, vararg examples: Pair<String, Example> = arrayOf()): HttpCodeResponse =
-    ok(json(name, *examples))
+        ok(json(name, *examples))
 
 fun ok(vararg responses: ResponseType = arrayOf(), description: String? = null): HttpCodeResponse =
-    HttpCodeResponse(OK, listOf(*responses), description)
+        HttpCodeResponse(OK, listOf(*responses), description)
 
 inline fun <reified T> noContent(vararg examples: Pair<String, Example> = arrayOf()): HttpCodeResponse =
-    noContent(json<T>(*examples))
+        noContent(json<T>(*examples))
 
 fun noContent(name: String, vararg examples: Pair<String, Example> = arrayOf()): HttpCodeResponse =
-    noContent(json(name, *examples))
+        noContent(json(name, *examples))
 
 fun noContent(vararg responses: ResponseType = arrayOf(), description: String? = null): HttpCodeResponse =
-    HttpCodeResponse(NoContent, listOf(*responses), description)
+        HttpCodeResponse(NoContent, listOf(*responses), description)
 
 inline fun <reified T> created(vararg examples: Pair<String, Example> = arrayOf()): HttpCodeResponse =
-    created(json<T>(*examples))
+        created(json<T>(*examples))
 
 fun created(name: String, vararg examples: Pair<String, Example> = arrayOf()): HttpCodeResponse =
-    created(json(name, *examples))
+        created(json(name, *examples))
 
 fun created(vararg responses: ResponseType = arrayOf(), description: String? = null): HttpCodeResponse =
-    HttpCodeResponse(Created, listOf(*responses), description)
+        HttpCodeResponse(Created, listOf(*responses), description)
 
 fun notFound(): HttpCodeResponse =
-    notFound(json<Unit>())
+        notFound(json<Unit>())
 
 inline fun <reified T> notFound(vararg examples: Pair<String, Example> = arrayOf()): HttpCodeResponse =
-    notFound(json<T>(*examples))
+        notFound(json<T>(*examples))
 
 fun notFound(name: String, vararg examples: Pair<String, Example> = arrayOf()): HttpCodeResponse =
-    notFound(json(name, *examples))
+        notFound(json(name, *examples))
 
 fun notFound(vararg responses: ResponseType = arrayOf(), description: String? = null): HttpCodeResponse =
-    HttpCodeResponse(NotFound, listOf(*responses), description)
+        HttpCodeResponse(NotFound, listOf(*responses), description)
 
 fun badRequest(): HttpCodeResponse =
-    badRequest(json<Unit>())
+        badRequest(json<Unit>())
 
 inline fun <reified T> badRequest(vararg examples: Pair<String, Example> = arrayOf()): HttpCodeResponse =
-    badRequest(json<T>(*examples))
+        badRequest(json<T>(*examples))
 
 fun badRequest(name: String, vararg examples: Pair<String, Example> = arrayOf()): HttpCodeResponse =
-    badRequest(json(name, *examples))
+        badRequest(json(name, *examples))
 
 fun badRequest(vararg responses: ResponseType = arrayOf(), description: String? = null): HttpCodeResponse =
-    HttpCodeResponse(BadRequest, listOf(*responses), description)
+        HttpCodeResponse(BadRequest, listOf(*responses), description)
 
 inline fun <reified T> internalServerError(vararg examples: Pair<String, Example> = arrayOf()): HttpCodeResponse =
-    internalServerError(json<T>(*examples))
+        internalServerError(json<T>(*examples))
 
 fun internalServerError(name: String, vararg examples: Pair<String, Example> = arrayOf()): HttpCodeResponse =
-    internalServerError(json(name, *examples))
+        internalServerError(json(name, *examples))
 
 fun internalServerError(vararg responses: ResponseType = arrayOf(), description: String? = null): HttpCodeResponse =
-    HttpCodeResponse(InternalServerError, listOf(*responses), description)
+        HttpCodeResponse(InternalServerError, listOf(*responses), description)
 
 fun resetContent(name: String, vararg examples: Pair<String, Example> = arrayOf()): HttpCodeResponse =
-    HttpStatusCode.ResetContent(json(name, *examples))
+        HttpStatusCode.ResetContent(json(name, *examples))
 
 fun resetContent(vararg responses: ResponseType = arrayOf(), description: String? = null): HttpCodeResponse =
-    HttpStatusCode.ResetContent(*responses, description = description)
+        HttpStatusCode.ResetContent(*responses, description = description)
 
 operator fun HttpStatusCode.invoke(name: String, vararg examples: Pair<String, Example> = arrayOf()): HttpCodeResponse =
-    this(json(name, *examples))
+        this(json(name, *examples))
 
 operator fun HttpStatusCode.invoke(vararg responses: ResponseType = arrayOf(), description: String? = null): HttpCodeResponse =
-    HttpCodeResponse(this, listOf(*responses), description)
+        HttpCodeResponse(this, listOf(*responses), description)
 
 fun contentTypeResponse(contentType: ContentType): ResponseType =
-    CustomContentTypeResponse(contentType)
+        CustomContentTypeResponse(contentType)
+
+@ContextDsl
+inline fun <reified LOCATION : Any> Route.post(
+        metadata: Metadata,
+        noinline body: suspend PipelineContext<Unit, ApplicationCall>.(LOCATION) -> Unit): Route {
+    return post<LOCATION, Unit>(metadata) { lc, _ -> body(lc) }
+}
 
 @ContextDsl
 inline fun <reified LOCATION : Any, reified ENTITY : Any> Route.post(
-    metadata: Metadata,
-    noinline body: suspend PipelineContext<Unit, ApplicationCall>.(LOCATION, ENTITY) -> Unit
+        metadata: Metadata,
+        noinline body: suspend PipelineContext<Unit, ApplicationCall>.(LOCATION, ENTITY) -> Unit
 ): Route {
     application.swaggerUi.apply {
         metadata.apply<LOCATION, ENTITY>(HttpMethod.Post)
@@ -264,8 +271,8 @@ inline fun <reified LOCATION : Any, reified ENTITY : Any> Route.post(
 
 @ContextDsl
 inline fun <reified LOCATION : Any, reified ENTITY : Any> Route.put(
-    metadata: Metadata,
-    noinline body: suspend PipelineContext<Unit, ApplicationCall>.(LOCATION, ENTITY) -> Unit
+        metadata: Metadata,
+        noinline body: suspend PipelineContext<Unit, ApplicationCall>.(LOCATION, ENTITY) -> Unit
 ): Route {
     application.swaggerUi.apply {
         metadata.apply<LOCATION, ENTITY>(HttpMethod.Put)
@@ -277,8 +284,8 @@ inline fun <reified LOCATION : Any, reified ENTITY : Any> Route.put(
 
 @ContextDsl
 inline fun <reified LOCATION : Any> Route.get(
-    metadata: Metadata,
-    noinline body: suspend PipelineContext<Unit, ApplicationCall>.(LOCATION) -> Unit
+        metadata: Metadata,
+        noinline body: suspend PipelineContext<Unit, ApplicationCall>.(LOCATION) -> Unit
 ): Route {
     application.swaggerUi.apply {
         metadata.apply<LOCATION, Unit>(HttpMethod.Get)
@@ -288,8 +295,8 @@ inline fun <reified LOCATION : Any> Route.get(
 
 @ContextDsl
 inline fun <reified LOCATION : Any> Route.delete(
-    metadata: Metadata,
-    noinline body: suspend PipelineContext<Unit, ApplicationCall>.(LOCATION) -> Unit
+        metadata: Metadata,
+        noinline body: suspend PipelineContext<Unit, ApplicationCall>.(LOCATION) -> Unit
 ): Route {
     application.swaggerUi.apply {
         metadata.apply<LOCATION, Unit>(HttpMethod.Delete)
