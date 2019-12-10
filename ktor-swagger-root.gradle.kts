@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.Coroutines
-
 buildscript {
     repositories {
         mavenCentral()
@@ -14,7 +12,7 @@ buildscript {
 }
 plugins {
     // https://github.com/diffplug/spotless/tree/master/plugin-gradle
-    id("com.diffplug.gradle.spotless") version "3.10.0"
+    id("com.diffplug.gradle.spotless") version "3.26.1"
     id("com.jfrog.bintray") version "1.8.2"
     jacoco
     `maven-publish`
@@ -24,7 +22,7 @@ object Versions {
     /**
      * The version of KtLint to be used for linting the Kotlin and Kotlin Script files.
      */
-    const val KTLINT = "0.23.1"
+    const val KTLINT = "0.36.0"
 }
 
 allprojects {
@@ -32,7 +30,7 @@ allprojects {
         plugin("com.diffplug.gradle.spotless")
     }
     group = "de.nielsfalk.ktor"
-    version = "0.5.0"
+    version = "0.6.3"
 
     repositories {
         mavenCentral()
@@ -42,7 +40,7 @@ allprojects {
 }
 
 fun DependencyHandler.ktor(name: String) =
-    create(group = "io.ktor", name = name, version = "1.1.1")
+        create(group = "io.ktor", name = name, version = "1.1.1")
 
 subprojects {
     apply {
@@ -65,6 +63,14 @@ subprojects {
     spotless {
         kotlin {
             ktlint(Versions.KTLINT)
+            custom("noWildcardImports") {
+                if (it.contains(" �*;\n")) {
+                    "No wildcard imports allowed"
+                } else {
+                    it
+                }
+            }
+            bumpThisNumberIfACustomStepChanges(1)
             trimTrailingWhitespace()
             endWithNewline()
         }
@@ -94,15 +100,15 @@ val jacocoRootReport = tasks.register<JacocoReport>("jacocoRootReport") {
     description = "Generates an HTML code coverage report for all sub-projects."
 
     val jacocoReportTasks =
-        subprojects
-            .asSequence()
-            .filter {
-                // Filter out source sets that don't have tests in them
-                // Otherwise, Jacoco tries to generate coverage data for tests that don't exist
-                !it.java.sourceSets["test"].allSource.isEmpty
-            }
-            .map { it.tasks["jacocoTestReport"] as JacocoReport }
-            .toList()
+            subprojects
+                    .asSequence()
+                    .filter {
+                        // Filter out source sets that don't have tests in them
+                        // Otherwise, Jacoco tries to generate coverage data for tests that don't exist
+                        !it.java.sourceSets["test"].allSource.isEmpty
+                    }
+                    .map { it.tasks["jacocoTestReport"] as JacocoReport }
+                    .toList()
     dependsOn(jacocoReportTasks)
 
     executionData.setFrom(Callable { jacocoReportTasks.map { it.executionData } })
@@ -188,7 +194,7 @@ tasks.withType<Wrapper>().configureEach {
  * Configures the [kotlin][org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension] project extension.
  */
 fun Project.`kotlin`(configure: org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension.() -> Unit): Unit =
-    extensions.configure("kotlin", configure)
+        extensions.configure("kotlin", configure)
 
 /**
  * Retrieves the [java][org.gradle.api.plugins.JavaPluginConvention] project convention.

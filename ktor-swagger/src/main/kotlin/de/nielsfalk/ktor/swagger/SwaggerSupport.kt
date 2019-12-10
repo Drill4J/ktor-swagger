@@ -6,8 +6,14 @@ import de.nielsfalk.ktor.swagger.version.shared.ModelName
 import de.nielsfalk.ktor.swagger.version.shared.OperationBase
 import de.nielsfalk.ktor.swagger.version.shared.ParameterBase
 import de.nielsfalk.ktor.swagger.version.shared.ParameterInputType
+import de.nielsfalk.ktor.swagger.version.v2.Operation as OperationV2
+import de.nielsfalk.ktor.swagger.version.v2.Parameter as ParameterV2
+import de.nielsfalk.ktor.swagger.version.v2.Response as ResponseV2
 import de.nielsfalk.ktor.swagger.version.v2.Swagger
 import de.nielsfalk.ktor.swagger.version.v3.OpenApi
+import de.nielsfalk.ktor.swagger.version.v3.Operation as OperationV3
+import de.nielsfalk.ktor.swagger.version.v3.Parameter as ParameterV3
+import de.nielsfalk.ktor.swagger.version.v3.Response as ResponseV3
 import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.application.ApplicationFeature
@@ -24,12 +30,6 @@ import io.ktor.util.AttributeKey
 import io.ktor.util.pipeline.PipelineContext
 import kotlin.reflect.KClass
 import kotlin.reflect.full.memberProperties
-import de.nielsfalk.ktor.swagger.version.v2.Operation as OperationV2
-import de.nielsfalk.ktor.swagger.version.v2.Parameter as ParameterV2
-import de.nielsfalk.ktor.swagger.version.v2.Response as ResponseV2
-import de.nielsfalk.ktor.swagger.version.v3.Operation as OperationV3
-import de.nielsfalk.ktor.swagger.version.v3.Parameter as ParameterV3
-import de.nielsfalk.ktor.swagger.version.v3.Response as ResponseV3
 
 class SwaggerSupport(
     val swagger: Swagger?,
@@ -48,12 +48,12 @@ class SwaggerSupport(
 
         override fun install(pipeline: Application, configure: SwaggerUiConfiguration.() -> Unit): SwaggerSupport {
             val (path,
-                forwardRoot,
-                provideUi,
-                swagger,
-                openApi,
-                swaggerConfig,
-                openpapiConfig
+                    forwardRoot,
+                    provideUi,
+                    swagger,
+                    openApi,
+                    swaggerConfig,
+                    openpapiConfig
             ) = SwaggerUiConfiguration().apply(configure)
             val feature = SwaggerSupport(swagger, swaggerConfig, openApi, openpapiConfig)
 
@@ -93,20 +93,20 @@ class SwaggerSupport(
     }
 
     val commons: Collection<CommonBase> =
-        listOf(swagger, openApi).filterNotNull()
+            listOf(swagger, openApi).filterNotNull()
 
     private val variations: Collection<BaseWithVariation<out CommonBase>>
         get() = commons.map {
             when (it) {
                 is Swagger -> SwaggerBaseWithVariation(
-                    it,
-                    swaggerCustomization,
-                    swaggerVariation
+                        it,
+                        swaggerCustomization,
+                        swaggerVariation
                 )
                 is OpenApi -> OpenApiBaseWithVariation(
-                    it,
-                    openApiCustomization,
-                    openApiVariation
+                        it,
+                        openApiCustomization,
+                        openApiVariation
                 )
                 else -> throw IllegalStateException("Must be of type ${Swagger::class.simpleName} or ${OpenApi::class.simpleName}")
             }
@@ -164,22 +164,22 @@ private abstract class BaseWithVariation<B : CommonBase>(
         if (typeInfo.type != Unit::class) {
             val accruedNewDefinitions = mutableListOf<TypeInfo>()
             schemaHolder
-                .computeIfAbsent(typeInfo.modelName()) {
-                    val modelWithAdditionalDefinitions = variation {
-                        createModelData(typeInfo)
+                    .computeIfAbsent(typeInfo.modelName()) {
+                        val modelWithAdditionalDefinitions = variation {
+                            createModelData(typeInfo)
+                        }
+                        accruedNewDefinitions.addAll(modelWithAdditionalDefinitions.second)
+                        modelWithAdditionalDefinitions.first
                     }
-                    accruedNewDefinitions.addAll(modelWithAdditionalDefinitions.second)
-                    modelWithAdditionalDefinitions.first
-                }
 
             accruedNewDefinitions.forEach { addDefinition(it) }
         }
     }
 
     fun addDefinitions(kClasses: Collection<TypeInfo>) =
-        kClasses.forEach {
-            addDefinition(it)
-        }
+            kClasses.forEach {
+                addDefinition(it)
+            }
 
     fun <LOCATION : Any> Metadata.applyOperations(
         location: Location,
@@ -188,6 +188,16 @@ private abstract class BaseWithVariation<B : CommonBase>(
         locationType: KClass<LOCATION>,
         bodyType: BodyType
     ) {
+
+        val java = locationType.javaObjectType
+        val classes = java.name.split("$")
+        val listOfFullPath = classes.mapIndexed { index, _ ->
+            val first = ClassLoader.getSystemClassLoader().loadClass(classes.subList(0, index + 1).joinToString(separator = "\$"))
+                    .annotations
+                    .filterIsInstance<Location>().firstOrNull()
+            first?.path ?: ""
+        }
+        val fullPath = listOfFullPath.joinToString(separator = "")
 
         if (bodyType is BodyFromReflection && bodyType.typeInfo.type != Unit::class) {
             addDefinition(bodyType.typeInfo)
@@ -212,14 +222,14 @@ private abstract class BaseWithVariation<B : CommonBase>(
                         add(bodyType.bodyParameter())
                     }
                     addAll(locationType.memberProperties.map {
-                        it.toParameter(location.path).let {
+                        it.toParameter(fullPath).let {
                             addDefinitions(it.second)
                             it.first
                         }
                     })
                     fun KClass<*>.processToParameters(parameterType: ParameterInputType) {
                         addAll(memberProperties.map {
-                            it.toParameter(location.path, parameterType).let {
+                            it.toParameter(fullPath, parameterType).let {
                                 addDefinitions(it.second)
                                 it.first
                             }
@@ -231,22 +241,22 @@ private abstract class BaseWithVariation<B : CommonBase>(
             }
 
             return variation.operationCreator.create(
-                this,
-                responses,
-                parameters,
-                location,
-                group,
-                method,
-                bodyExamples
+                    this,
+                    responses,
+                    parameters,
+                    location,
+                    group,
+                    method,
+                    bodyExamples
             )
         }
 
         base.paths
-            .getOrPut(location.path) { mutableMapOf() }
-            .put(
-                method.value.toLowerCase(),
-                createOperation()
-            )
+                .getOrPut(fullPath) { mutableMapOf() }
+                .put(
+                        method.value.toLowerCase(),
+                        createOperation()
+                )
     }
 
     private fun <K : Any, V> Map<K, V?>.filterNullValues(): Map<K, V> {
@@ -272,9 +282,9 @@ private abstract class BaseWithVariation<B : CommonBase>(
     }
 
     private fun Metadata.requireMethodSupportsBody(method: HttpMethod) =
-        require(!(methodForbidsBody.contains(method) && bodySchema != null)) {
-            "Method type $method does not support a body parameter."
-        }
+            require(!(methodForbidsBody.contains(method) && bodySchema != null)) {
+                "Method type $method does not support a body parameter."
+            }
 
     internal fun Metadata.apply(locationClass: KClass<*>, bodyTypeInfo: TypeInfo, method: HttpMethod) {
         requireMethodSupportsBody(method)
