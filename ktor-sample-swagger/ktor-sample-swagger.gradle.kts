@@ -5,12 +5,13 @@ plugins {
 }
 
 fun DependencyHandler.ktor(name: String) =
-    create(group = "io.ktor", name = name, version = "1.1.1")
+    create(group = "io.ktor", name = name, version = "1.2.6")
 
 dependencies {
     implementation(project(":ktor-swagger"))
     implementation(ktor("ktor-server-netty"))
     implementation(ktor("ktor-gson"))
+    implementation(ktor("ktor-serialization"))
     implementation(group = "com.github.ajalt", name = "clikt", version = "1.3.0")
 }
 

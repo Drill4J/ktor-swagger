@@ -26,9 +26,6 @@ object Versions {
 }
 
 allprojects {
-    apply {
-        plugin("com.diffplug.gradle.spotless")
-    }
     group = "de.nielsfalk.ktor"
     version = "0.6.3"
 
@@ -40,7 +37,7 @@ allprojects {
 }
 
 fun DependencyHandler.ktor(name: String) =
-        create(group = "io.ktor", name = name, version = "1.1.1")
+        create(group = "io.ktor", name = name, version = "1.2.6")
 
 subprojects {
     apply {
@@ -54,26 +51,11 @@ subprojects {
         "api"(kotlin(module = "reflect", version = property("kotlin.version") as String))
         "api"(ktor("ktor-locations"))
         "api"(ktor("ktor-server-core"))
+        "api"(group= "com.google.code.gson", name = "gson", version = "2.8.6")
 
         "testImplementation"(ktor("ktor-server-test-host"))
         "testImplementation"(ktor("ktor-gson"))
         "testImplementation"(group = "com.winterbe", name = "expekt", version = "0.5.0")
-    }
-
-    spotless {
-        kotlin {
-            ktlint(Versions.KTLINT)
-            custom("noWildcardImports") {
-                if (it.contains(" �*;\n")) {
-                    "No wildcard imports allowed"
-                } else {
-                    it
-                }
-            }
-            bumpThisNumberIfACustomStepChanges(1)
-            trimTrailingWhitespace()
-            endWithNewline()
-        }
     }
 
     tasks.withType<Test> {

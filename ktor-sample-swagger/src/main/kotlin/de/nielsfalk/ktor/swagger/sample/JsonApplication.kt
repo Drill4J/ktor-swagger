@@ -4,18 +4,7 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.int
-import de.nielsfalk.ktor.swagger.SwaggerSupport
-import de.nielsfalk.ktor.swagger.created
-import de.nielsfalk.ktor.swagger.delete
-import de.nielsfalk.ktor.swagger.description
-import de.nielsfalk.ktor.swagger.example
-import de.nielsfalk.ktor.swagger.examples
-import de.nielsfalk.ktor.swagger.get
-import de.nielsfalk.ktor.swagger.notFound
-import de.nielsfalk.ktor.swagger.ok
-import de.nielsfalk.ktor.swagger.post
-import de.nielsfalk.ktor.swagger.put
-import de.nielsfalk.ktor.swagger.responds
+import de.nielsfalk.ktor.swagger.*
 import de.nielsfalk.ktor.swagger.version.shared.Contact
 import de.nielsfalk.ktor.swagger.version.shared.Group
 import de.nielsfalk.ktor.swagger.version.shared.Information
@@ -25,15 +14,13 @@ import de.nielsfalk.ktor.swagger.version.v3.Schema
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.application.install
-import io.ktor.features.CallLogging
-import io.ktor.features.Compression
-import io.ktor.features.ContentNegotiation
-import io.ktor.features.DefaultHeaders
+import io.ktor.features.*
 import io.ktor.gson.gson
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.locations.Location
 import io.ktor.locations.Locations
+import io.ktor.request.ApplicationReceiveRequest
 import io.ktor.response.respond
 import io.ktor.response.respondText
 import io.ktor.routing.routing
@@ -47,13 +34,13 @@ import io.ktor.util.toMap
 data class PetModel(val id: Int?, val name: String) {
     companion object {
         val exampleSpike = mapOf(
-            "id" to 1,
-            "name" to "Spike"
+                "id" to 1,
+                "name" to "Spike"
         )
 
         val exampleRover = mapOf(
-            "id" to 2,
-            "name" to "Rover"
+                "id" to 2,
+                "name" to "Rover"
         )
     }
 }
@@ -61,10 +48,10 @@ data class PetModel(val id: Int?, val name: String) {
 data class PetsModel(val pets: MutableList<PetModel>) {
     companion object {
         val exampleModel = mapOf(
-            "pets" to listOf(
-                PetModel.exampleSpike,
-                PetModel.exampleRover
-            )
+                "pets" to listOf(
+                        PetModel.exampleSpike,
+                        PetModel.exampleRover
+                )
         )
     }
 }
@@ -72,23 +59,23 @@ data class PetsModel(val pets: MutableList<PetModel>) {
 data class Model<T>(val elements: MutableList<T>)
 
 val sizeSchemaMap = mapOf(
-    "type" to "number",
-    "minimum" to 0
+        "type" to "number",
+        "minimum" to 0
 )
 
 fun rectangleSchemaMap(refBase: String) = mapOf(
-    "type" to "object",
-    "properties" to mapOf(
-        "a" to mapOf("${'$'}ref" to "$refBase/size"),
-        "b" to mapOf("${'$'}ref" to "$refBase/size")
-    )
+        "type" to "object",
+        "properties" to mapOf(
+                "a" to mapOf("${'$'}ref" to "$refBase/size"),
+                "b" to mapOf("${'$'}ref" to "$refBase/size")
+        )
 )
 
 val data = PetsModel(
-    mutableListOf(
-        PetModel(1, "max"),
-        PetModel(2, "moritz")
-    )
+        mutableListOf(
+                PetModel(1, "max"),
+                PetModel(2, "moritz")
+        )
 )
 
 fun newId() = ((data.pets.map { it.id ?: 0 }.max()) ?: 0) + 1
@@ -110,14 +97,14 @@ const val petUuid = "petUuid"
 @Group("generic operations")
 @Location("/pet/custom/{id}")
 class petCustomSchemaParam(
-    @Schema(petUuid)
-    val id: String
+        @Schema(petUuid)
+        val id: String
 )
 
 val petIdSchema = mapOf(
-    "type" to "string",
-    "format" to "date",
-    "description" to "The identifier of the pet to be accessed"
+        "type" to "string",
+        "format" to "date",
+        "description" to "The identifier of the pet to be accessed"
 )
 
 @Group("shape operations")
@@ -140,6 +127,17 @@ class withQueryParameter
 
 class QueryParameter(val optionalParameter: String?, val mandatoryParameter: Int)
 
+class EmptyContenter : ContentConverter {
+    override suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any? {
+        return Unit
+    }
+
+    override suspend fun convertForSend(context: PipelineContext<Any, ApplicationCall>, contentType: ContentType, value: Any): Any? {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+}
+
 internal fun run(port: Int, wait: Boolean = true): ApplicationEngine {
     println("Launching on port `$port`")
     val server = embeddedServer(Netty, port) {
@@ -147,6 +145,7 @@ internal fun run(port: Int, wait: Boolean = true): ApplicationEngine {
         install(Compression)
         install(CallLogging)
         install(ContentNegotiation) {
+            register(ContentType.Any, EmptyContenter())
             gson {
                 setPrettyPrinting()
             }
@@ -155,13 +154,13 @@ internal fun run(port: Int, wait: Boolean = true): ApplicationEngine {
         install(SwaggerSupport) {
             forwardRoot = true
             val information = Information(
-                version = "0.1",
-                title = "sample api implemented in ktor",
-                description = "This is a sample which combines [ktor](https://github.com/Kotlin/ktor) with [swaggerUi](https://swagger.io/). You find the sources on [github](https://github.com/nielsfalk/ktor-swagger)",
-                contact = Contact(
-                    name = "Niels Falk",
-                    url = "https://nielsfalk.de"
-                )
+                    version = "0.1",
+                    title = "sample api implemented in ktor",
+                    description = "This is a sample which combines [ktor](https://github.com/Kotlin/ktor) with [swaggerUi](https://swagger.io/). You find the sources on [github](https://github.com/nielsfalk/ktor-swagger)",
+                    contact = Contact(
+                            name = "Niels Falk",
+                            url = "https://nielsfalk.de"
+                    )
             )
             swagger = Swagger().apply {
                 info = information
@@ -180,40 +179,38 @@ internal fun run(port: Int, wait: Boolean = true): ApplicationEngine {
             get<pets>("all".responds(ok<PetsModel>(example("model", PetsModel.exampleModel)))) {
                 call.respond(data)
             }
-            post<pets, PetModel>(
-                "create"
-                    .description("Save a pet in our wonderful database!")
-                    .examples(
-                        example("rover", PetModel.exampleRover, summary = "Rover is one possible pet."),
-                        example("spike", PetModel.exampleSpike, summary = "Spike is a different posssible pet.")
-                    )
-                    .responds(
-                        created<PetModel>(
-                            example("rover", PetModel.exampleRover),
-                            example("spike", PetModel.exampleSpike)
-                        )
-                    )
+            post<pets, Unit>(
+                    "create"
+                            .description("Save a pet in our wonderful database!")
+                            .examples(
+                                    example("rover", PetModel.exampleRover, summary = "Rover is one possible pet."),
+                                    example("spike", PetModel.exampleSpike, summary = "Spike is a different posssible pet.")
+                            )
+                            .responds(
+                                    created<PetModel>(
+                                            example("rover", PetModel.exampleRover),
+                                            example("spike", PetModel.exampleSpike)
+                                    )
+                            )
             ) { _, entity ->
-                call.respond(Created, entity.copy(id = newId()).apply {
-                    data.pets.add(this)
-                })
+                call.respond(Created, "Hi man")
             }
             get<pet>(
-                "find".responds(
-                    ok<PetModel>(),
-                    notFound()
-                )
+                    "find".responds(
+                            ok<PetModel>(),
+                            notFound()
+                    )
             ) { params ->
                 data.pets.find { it.id == params.id }
-                    ?.let {
-                        call.respond(it)
-                    }
+                        ?.let {
+                            call.respond(it)
+                        }
             }
             put<pet, PetModel>(
-                "update".responds(
-                    ok<PetModel>(),
-                    notFound()
-                )
+                    "update".responds(
+                            ok<PetModel>(),
+                            notFound()
+                    )
             ) { params, entity ->
                 if (data.pets.removeIf { it.id == params.id && it.id == entity.id }) {
                     data.pets.add(entity)
@@ -221,22 +218,22 @@ internal fun run(port: Int, wait: Boolean = true): ApplicationEngine {
                 }
             }
             delete<pet>(
-                "delete".responds(
-                    ok<Unit>(),
-                    notFound()
-                )
+                    "delete".responds(
+                            ok<Unit>(),
+                            notFound()
+                    )
             ) { params ->
                 if (data.pets.removeIf { it.id == params.id }) {
                     call.respond(Unit)
                 }
             }
             get<shapes>(
-                "all".responds(
-                    ok("Rectangle")
-                )
+                    "all".responds(
+                            ok("Rectangle")
+                    )
             ) {
                 call.respondText(
-                    """
+                        """
                     {
                         "a" : 10,
                         "b" : 25
@@ -251,18 +248,18 @@ internal fun run(port: Int, wait: Boolean = true): ApplicationEngine {
             get<petCustomSchemaParam>("pet by id".responds(ok<PetModel>())) {
             }
             get<requestInfo>(
-                responds(ok<Unit>()),
-                respondRequestDetails()
+                    responds(ok<Unit>()),
+                    respondRequestDetails()
             )
             get<withQueryParameter>(
-                responds(ok<Unit>())
-                    .parameter<QueryParameter>(),
-                respondRequestDetails()
+                    responds(ok<Unit>())
+                            .parameter<QueryParameter>(),
+                    respondRequestDetails()
             )
             get<withHeader>(
-                responds(ok<Unit>())
-                    .header<Header>(),
-                respondRequestDetails()
+                    responds(ok<Unit>())
+                            .header<Header>(),
+                    respondRequestDetails()
             )
         }
     }
@@ -272,41 +269,41 @@ internal fun run(port: Int, wait: Boolean = true): ApplicationEngine {
 fun respondRequestDetails(): suspend PipelineContext<Unit, ApplicationCall>.(Any) -> Unit {
     return {
         call.respond(
-            mapOf(
-                "parameter" to call.parameters,
-                "header" to call.request.headers
-            ).format()
+                mapOf(
+                        "parameter" to call.parameters,
+                        "header" to call.request.headers
+                ).format()
         )
     }
 }
 
 private fun Map<String, StringValues>.format() =
-    mapValues {
-        it.value.toMap()
-            .flatMap { (key, value) -> value.map { key to it } }
-            .map { (key, value) -> "$key: $value" }
-            .joinToString(separator = ",\n")
-    }
-        .map { (key, value) -> "$key:\n$value" }
-        .joinToString(separator = "\n\n")
+        mapValues {
+            it.value.toMap()
+                    .flatMap { (key, value) -> value.map { key to it } }
+                    .map { (key, value) -> "$key: $value" }
+                    .joinToString(separator = ",\n")
+        }
+                .map { (key, value) -> "$key:\n$value" }
+                .joinToString(separator = "\n\n")
 
 /**
  * Launches the application and handles the args passed to [main].
  */
 class Launcher : CliktCommand(
-    name = "ktor-sample-swagger"
+        name = "ktor-sample-swagger"
 ) {
     companion object {
         private const val defaultPort = 8080
     }
 
     private val port: Int by option(
-        "-p",
-        "--port",
-        help = "The port that this server should be started on. Defaults to $defaultPort."
+            "-p",
+            "--port",
+            help = "The port that this server should be started on. Defaults to $defaultPort."
     )
-        .int()
-        .default(defaultPort)
+            .int()
+            .default(defaultPort)
 
     override fun run() {
         run(port)

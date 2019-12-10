@@ -1,5 +1,8 @@
 package de.nielsfalk.ktor.swagger
 
+import com.google.gson.Gson
+import com.sun.xml.internal.ws.client.ContentNegotiation
+import de.nielsfalk.ktor.swagger.SwaggerSupport.Feature.install
 import de.nielsfalk.ktor.swagger.version.shared.CommonBase
 import de.nielsfalk.ktor.swagger.version.shared.Group
 import de.nielsfalk.ktor.swagger.version.shared.ModelName
@@ -11,13 +14,10 @@ import de.nielsfalk.ktor.swagger.version.v2.Parameter as ParameterV2
 import de.nielsfalk.ktor.swagger.version.v2.Response as ResponseV2
 import de.nielsfalk.ktor.swagger.version.v2.Swagger
 import de.nielsfalk.ktor.swagger.version.v3.OpenApi
+import io.ktor.application.*
 import de.nielsfalk.ktor.swagger.version.v3.Operation as OperationV3
 import de.nielsfalk.ktor.swagger.version.v3.Parameter as ParameterV3
 import de.nielsfalk.ktor.swagger.version.v3.Response as ResponseV3
-import io.ktor.application.Application
-import io.ktor.application.ApplicationCall
-import io.ktor.application.ApplicationFeature
-import io.ktor.application.call
 import io.ktor.client.call.TypeInfo
 import io.ktor.client.call.typeInfo
 import io.ktor.http.HttpMethod
@@ -72,7 +72,7 @@ class SwaggerSupport(
                     if (filename == swaggerJsonFileName && swagger != null) {
                         call.respond(swagger)
                     } else if (filename == openApiJsonFileName && openApi != null) {
-                        call.respond(openApi)
+                        call.respond(Gson().toJson(openApi))
                     } else {
                         ui?.serve(filename, call)
                     }
