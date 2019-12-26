@@ -27,7 +27,7 @@ object Versions {
 
 allprojects {
     group = "de.nielsfalk.ktor"
-    version = "0.6.4"
+    version = "0.6.3-ktor-1.3.0-rc"
 
     repositories {
         mavenCentral()
