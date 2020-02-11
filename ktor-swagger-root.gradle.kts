@@ -27,7 +27,7 @@ object Versions {
 
 allprojects {
     group = "de.nielsfalk.ktor"
-    version = "0.6.3-ktor-1.3.0-rc"
+    version = "0.6.3-ktor-1.3.0"
 
     repositories {
         mavenCentral()
@@ -37,7 +37,7 @@ allprojects {
 }
 
 fun DependencyHandler.ktor(name: String) =
-        create(group = "io.ktor", name = name, version = "1.3.0-rc")
+        create(group = "io.ktor", name = name, version = "1.3.0")
 
 subprojects {
     apply {

@@ -1,5 +1,6 @@
 package de.nielsfalk.ktor.swagger.sample
 
+import io.ktor.server.engine.*
 import java.util.concurrent.TimeUnit
 import org.junit.Test
 
