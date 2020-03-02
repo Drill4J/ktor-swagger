@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.Coroutines
-
 buildscript {
     repositories {
         mavenCentral()
@@ -142,6 +140,15 @@ project(":ktor-swagger") {
 
     // This ensures that the entire project's configuration has been resolved before creating a publish artifact.
     publishing {
+        repositories {
+            maven {
+                url = uri("http://oss.jfrog.org/oss-release-local")
+                credentials {
+                    username = "${findProperty("bintrayUser") ?: System.getenv("BINTRAY_USER")}"
+                    password = "${findProperty("bintrayApiKey") ?: System.getenv("BINTRAY_API_KEY")}"
+                }
+            }
+        }
         publications {
             create<MavenPublication>(publicationName) {
                 from(components["java"])
