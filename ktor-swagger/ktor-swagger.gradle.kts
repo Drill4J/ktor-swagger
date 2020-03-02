@@ -7,4 +7,5 @@ dependencies {
      */
     val swaggerUiVersion = "3.23.8"
     implementation(group = "org.webjars", name = "swagger-ui", version = swaggerUiVersion)
+    implementation("com.google.code.gson:gson:2.8.6")
 }

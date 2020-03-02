@@ -71,9 +71,9 @@ class SwaggerSupport(
                 get("/$path/{fileName}") {
                     val filename = call.parameters["fileName"]
                     if (filename == swaggerJsonFileName && swagger != null) {
-                        call.respond(swagger)
+                        call.respond(swagger.toJsonContent())
                     } else if (filename == openApiJsonFileName && openApi != null) {
-                        call.respond(openApi)
+                        call.respond(openApi.toJsonContent())
                     } else {
                         ui?.serve(filename, call)
                     }
@@ -285,7 +285,7 @@ private abstract class BaseWithVariation<B : CommonBase>(
         requireMethodSupportsBody(method)
         val bodyType = createBodyType(bodyTypeInfo)
         val clazz = locationClass.java
-        val location = clazz.getAnnotation(Location::class.java)
+        val location = locationClass.toLocation()
         val tags = clazz.getAnnotation(Group::class.java)
 
         applyOperations(location, tags, method, locationClass, bodyType)
