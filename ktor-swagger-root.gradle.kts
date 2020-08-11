@@ -11,8 +11,7 @@ buildscript {
     }
 }
 plugins {
-    // https://github.com/diffplug/spotless/tree/master/plugin-gradle
-    id("com.diffplug.gradle.spotless") version "3.10.0"
+    id("com.diffplug.spotless") version "5.1.1"
     id("com.jfrog.bintray") version "1.8.2"
     jacoco
     `maven-publish`
@@ -27,7 +26,7 @@ object Versions {
 
 allprojects {
     apply {
-        plugin("com.diffplug.gradle.spotless")
+        plugin("com.diffplug.spotless")
     }
 
     repositories {
@@ -63,16 +62,6 @@ subprojects {
             ktlint(Versions.KTLINT)
             trimTrailingWhitespace()
             endWithNewline()
-        }
-    }
-
-    tasks.withType<Test> {
-        extensions.configure(typeOf<JacocoTaskExtension>()) {
-            /*
-             * Fix for Jacoco breaking Build Cache support.
-             * https://github.com/gradle/gradle/issues/5269
-             */
-            isAppend = false
         }
     }
 
@@ -192,11 +181,11 @@ tasks.withType<Wrapper>().configureEach {
 /**
  * Configures the [kotlin][org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension] project extension.
  */
-fun Project.`kotlin`(configure: org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension.() -> Unit): Unit =
+fun Project.kotlin(configure: org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension.() -> Unit): Unit =
     extensions.configure("kotlin", configure)
 
 /**
  * Retrieves the [java][org.gradle.api.plugins.JavaPluginConvention] project convention.
  */
-val Project.`java`: org.gradle.api.plugins.JavaPluginConvention
+val Project.java: JavaPluginConvention
     get() = convention.getPluginByName("java")
