@@ -1,4 +1,3 @@
-
 dependencies {
     /*
      * Webjars have their resources pakaged in a version specific directory.
