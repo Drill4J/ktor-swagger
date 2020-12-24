@@ -93,7 +93,7 @@ val data = PetsModel(
     )
 )
 
-fun newId() = ((data.pets.map { it.id ?: 0 }.max()) ?: 0) + 1
+fun newId() = ((data.pets.map { it.id ?: 0 }.maxOrNull()) ?: 0) + 1
 
 @Group("pet operations")
 @Location("/pets/{id}")

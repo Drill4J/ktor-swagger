@@ -342,7 +342,7 @@ class SwaggerTest {
         val default = parameters?.find { it.name == "defaultHeader" }
         default?.required.should.equal(false)
         (default as ParameterV2).default.should.equal("false")
-        default?.`in`.should.equal(ParameterInputType.header)
+        default.`in`.should.equal(ParameterInputType.header)
     }
 
     @Test
